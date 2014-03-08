@@ -6,6 +6,8 @@ Simple Java extractor of "city -> street -> address" hierarchy from OpenStreetMa
 
 May be there exists tools doing same task faster and better, but I didn't find any suitable fast enough. Also it seems there is no public database of addresses extracted from OSM.
 
+![Sample visualization](/sample_vis.png "Sample visualization")
+
 ## Usage
 
 TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
