@@ -25,7 +25,8 @@ OsmAddressExtractor extractor = new OsmAddressExtractor();
 extractor.extract("/home/jarek/Downloads/mapy/czech_republic-2014-03-05.osm.pbf");
 
 //render sample map - just for check what is in result
-extractor.renderResult("/home/jarek/Downloads/mapy/map.png");
+Envelope envelope = new Envelope(12.09, 18.87, 48.55, 51.06);
+extractor.renderResult("/home/jarek/map.png", 16000, 12000, envelope);
 		
 //traverse hierarchical data
 for (CityData city : extractor.getExtractedData()) {
