@@ -35,7 +35,6 @@ public class OsmAddressExtractor {
 			OsmosisReader reader = new OsmosisReader(new FileInputStream(f));
 			reader.setSink(sink);
 			reader.run();
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
