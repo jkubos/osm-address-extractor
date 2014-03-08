@@ -18,16 +18,16 @@ gradle build
 
 Sample:
 
-* process data
-* print sample image (to check what is contained)
-* traverse hierarchical address data
-
-
 ```
 OsmAddressExtractor extractor = new OsmAddressExtractor();
+
+//process data
 extractor.extract("/home/jarek/Downloads/mapy/czech_republic-2014-03-05.osm.pbf");
+
+//render sample map - just for check what is in result
 extractor.renderResult("/home/jarek/Downloads/mapy/map.png");
 		
+//traverse hierarchical data
 for (CityData city : extractor.getExtractedData()) {
 	for (StreetData street : city.streets) {
 		System.out.println(city.name+"->"+street.name);
