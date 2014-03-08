@@ -10,7 +10,30 @@ May be there exists tools doing same task faster and better, but I didn't find a
 
 ## Usage
 
-TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+Build is based on Gradle:
+```
+gradle eclipse
+gradle build
+```
+
+Sample:
+
+* process data
+* print sample image (to check what is contained)
+* traverse hierarchical address data
+
+
+```
+OsmAddressExtractor extractor = new OsmAddressExtractor();
+extractor.extract("/home/jarek/Downloads/mapy/czech_republic-2014-03-05.osm.pbf");
+extractor.renderResult("/home/jarek/Downloads/mapy/map.png");
+		
+for (CityData city : extractor.getExtractedData()) {
+	for (StreetData street : city.streets) {
+		System.out.println(city.name+"->"+street.name);
+	}
+}
+```
 
 ## OpenStreetMap
 
