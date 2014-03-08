@@ -1,0 +1,30 @@
+apply plugin: 'maven'
+
+dependencies {
+    compile 'org.openstreetmap.osmosis:osmosis-pbf:0.43.1'
+    compile 'com.vividsolutions:jts:1.13'    
+}
+
+jar {
+    dependsOn configurations.runtime
+    from ({ configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }) {
+	exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"	
+    }
+}
+
+task writeNewPom << {
+    pom {
+        project {
+            inceptionYear '2013'
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+    }.writeTo("$buildDir/pom.xml")
+}
