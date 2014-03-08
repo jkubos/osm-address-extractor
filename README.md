@@ -6,6 +6,10 @@ Simple Java extractor of "city -> street -> address" hierarchy from OpenStreetMa
 
 May be there exists tools doing same task faster and better, but I didn't find any suitable fast enough. Also it seems there is no public database of addresses extracted from OSM.
 
+## Usage
+
+TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+
 ## OpenStreetMap
 
 OSM database (*.osm, *.pbf) is mixture of entities bounded by:
@@ -40,4 +44,3 @@ Probably it would make a sense to use geo-db and other gis tools, I just wanted 
 * map features description: http://wiki.openstreetmap.org/wiki/Cs:Map_Features
 * boundary administrative: http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative
 * Czech data: http://osm.kyblsoft.cz/archiv/
-* 
