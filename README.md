@@ -56,7 +56,7 @@ Because of previous facts (order of section, hierarchy of objects, ...) it is ne
 1. obtain boundary ways of city, obtain points of streets
 2. obtain points of boundary ways
 
-In each pass load requirements for next pass are collected. For example for street there the load requirements are all nodes defining it. By this approach you are able to load only necessary objects and keep memory requirements feasible.
+In each pass load requirements for next pass are collected. For example for street there the load requirements are all nodes defining it. By this approach you are able to load only necessary objects and keep memory requirements feasible. When there is no new request during pass, iteration ends. Then everything necessary is loaded and it may be extracted.
 
 ## Used tools
 
