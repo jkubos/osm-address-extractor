@@ -33,3 +33,10 @@ Probably it would make a sense to use geo-db and other gis tools, I just wanted 
 
 * http://wiki.openstreetmap.org/wiki/Osmosis
 * http://www.vividsolutions.com/jts/JTSHome.htm
+
+## Useful links
+
+* map features description: http://wiki.openstreetmap.org/wiki/Cs:Map_Features
+* boundary administrative: http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative
+* Czech data: http://osm.kyblsoft.cz/archiv/
+* 
