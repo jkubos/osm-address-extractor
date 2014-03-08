@@ -2,9 +2,9 @@
 
 ## Description
 
-Simple Java extractor of "city -> street -> address" hierarchy from OpenStreetMap. Created as single purpose tool so I guess it won't work for other countries that Czech Republic (because mapping rules may differ). I just publish it as insipiration.
+Simple Java extractor of "city -> street -> address" hierarchy from OpenStreetMap. Created as single purpose tool so I guess it won't work for other countries that Czech Republic (because mapping rules may differ). I just publish it for insipiration.
 
-May be there exists tools doing same task faster and better, but I was not able to find any. Also it seems there is no public database of addresses extracted from OSM.
+May be there exists tools doing same task faster and better, but I didn't find any suitable fast enough. Also it seems there is no public database of addresses extracted from OSM.
 
 ## OpenStreetMap
 
@@ -25,9 +25,7 @@ Because of previous facts (order of section, hierarchy of objects, ...) it is ne
 1. obtain boundary ways of city, obtain points of streets
 2. obtain points of boundary ways
 
-In each pass load requirements for next pass are collected. By this approach you are able
-
-
+In each pass load requirements for next pass are collected. For example for street there the load requirements are all nodes defining it. By this approach you are able to load only necessary objects and keep memory requirements feasible.
 
 ## Used tools
 
