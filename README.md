@@ -13,6 +13,7 @@ OSM database (*.osm, *.pbf) is mixture of entities bounded by:
 * Entities bounded purely by geolocation. So for example streets of city are those placed within city boundary. This is harder to extract.
 
 Order of section within OSM (http://wiki.openstreetmap.org/wiki/OSM_XML#OSM_XML_file_format) files is following:
+
 1. nodes
 2. ways
 3. relations
