@@ -18,16 +18,17 @@ gradle build
 
 Sample:
 
-* process data
-* print sample image (to check what is contained)
-* traverse hierarchical address data
-
-
 ```
 OsmAddressExtractor extractor = new OsmAddressExtractor();
+
+//process data
 extractor.extract("/home/jarek/Downloads/mapy/czech_republic-2014-03-05.osm.pbf");
-extractor.renderResult("/home/jarek/Downloads/mapy/map.png");
+
+//render sample map - just for check what is in result
+Envelope envelope = new Envelope(12.09, 18.87, 48.55, 51.06);
+extractor.renderResult("/home/jarek/map.png", 16000, 12000, envelope);
 		
+//traverse hierarchical data
 for (CityData city : extractor.getExtractedData()) {
 	for (StreetData street : city.streets) {
 		System.out.println(city.name+"->"+street.name);
@@ -55,7 +56,7 @@ Because of previous facts (order of section, hierarchy of objects, ...) it is ne
 1. obtain boundary ways of city, obtain points of streets
 2. obtain points of boundary ways
 
-In each pass load requirements for next pass are collected. For example for street there the load requirements are all nodes defining it. By this approach you are able to load only necessary objects and keep memory requirements feasible.
+In each pass load requirements for next pass are collected. For example for street there the load requirements are all nodes defining it. When there is no new request during pass, iteration ends. Then everything necessary is loaded and addresses may be extracted. By this approach you are able to load only necessary objects and keep memory requirements feasible.
 
 ## Used tools
 
