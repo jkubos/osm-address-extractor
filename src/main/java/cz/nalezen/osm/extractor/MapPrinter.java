@@ -11,38 +11,39 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
 
 import cz.nalezen.osm.extractor.GeoExtractor.CityData;
 import cz.nalezen.osm.extractor.GeoExtractor.StreetData;
 
 public class MapPrinter {
-	private static final int IMG_WIDTH = 16000;
-	private static final int IMG_HEIGHT = 12000;
+	private int width;
+	private int height;
+	
+	private double sx;
+	private double sy;
+	
+	private Envelope envelope;
 
-	//CZ
-	private static final double BX = 12.09;
-	private static final double BY = 48.55;
-	private static final double EX = 18.87;
-	private static final double EY = 51.06;
-	
-	//Brno
-//	private static final double BX = 16.33;
-//	private static final double BY = 49.03;
-//	private static final double EX = 17.10;
-//	private static final double EY = 49.32;
-	
-	private static final double SX = IMG_WIDTH/(EX-BX);
-	private static final double SY = IMG_HEIGHT/(EY-BY);
-	
-	private static Point transform(double px, double py) {
-		int x = (int) ((px-BX)*SX);
-		int y = (int) ((py-BY)*SY);
-    	
-		return new Point(x, IMG_HEIGHT-y);
+	public MapPrinter(int width, int height, Envelope envelope) {
+		this.width = width;
+		this.height = height;
+		
+		this.envelope = envelope;
+		
+		sx = width/(envelope.getMaxX()-envelope.getMinX());
+		sy = height/(envelope.getMaxY()-envelope.getMinY());
 	}
 	
-	public static void renderCities(String imgPath, ArrayList<CityData> data) {
-		BufferedImage img = new BufferedImage(IMG_WIDTH, IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
+	private Point transform(double px, double py) {
+		int x = (int) ((px-envelope.getMinX())*sx);
+		int y = (int) ((py-envelope.getMinY())*sy);
+    	
+		return new Point(x, height-y);
+	}
+	
+	public void renderCities(String imgPath, ArrayList<CityData> data) {
+		BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 	    Graphics2D g = img.createGraphics();
 
 	    g.setBackground(Color.white);
@@ -79,7 +80,7 @@ public class MapPrinter {
 	    }
 	}
 
-	private static void renderBoundary(Graphics2D g, CityData cd) {
+	private void renderBoundary(Graphics2D g, CityData cd) {
 		if (cd.boundary==null) {
 			return;
 		}
@@ -95,7 +96,7 @@ public class MapPrinter {
     	g.drawPolygon(poly);
 	}
 
-	private static void renderName(Graphics2D g, CityData cd) {
+	private void renderName(Graphics2D g, CityData cd) {
 		if (cd.boundary!=null && cd.name!=null && !cd.boundary.getCentroid().isEmpty()) {
     		Point tp = transform(cd.boundary.getCentroid().getX(), cd.boundary.getCentroid().getY());
 
@@ -103,7 +104,7 @@ public class MapPrinter {
     	}
 	}
 
-	private static void renderStreets(Graphics2D g, CityData cd) {
+	private void renderStreets(Graphics2D g, CityData cd) {
 
 		for (StreetData sd : cd.streets) {
 			

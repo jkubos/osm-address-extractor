@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 
+import com.vividsolutions.jts.geom.Envelope;
+
 import crosby.binary.osmosis.OsmosisReader;
 import cz.nalezen.osm.extractor.GeoExtractor.CityData;
 
@@ -40,8 +42,9 @@ public class OsmAddressExtractor {
 		}
 	}
 
-	public void renderResult(String imgPath) {
-		MapPrinter.renderCities(imgPath, geoExtractor.getExtractedCities());
+	public void renderResult(String imgPath, int width, int height, Envelope envelope) {
+		MapPrinter printer = new MapPrinter(width, height, envelope);
+		printer.renderCities(imgPath, geoExtractor.getExtractedCities());
 	}
 	
 	public ArrayList<CityData> getExtractedData() {
