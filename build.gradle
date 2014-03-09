@@ -2,7 +2,8 @@ apply plugin: 'maven'
 
 dependencies {
     compile 'org.openstreetmap.osmosis:osmosis-pbf:0.43.1'
-    compile 'com.vividsolutions:jts:1.13'    
+    compile 'com.vividsolutions:jts:1.13'
+    compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.9.9'
 }
 
 jar {

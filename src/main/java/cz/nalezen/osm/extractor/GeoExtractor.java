@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
@@ -31,14 +32,19 @@ public class GeoExtractor {
 	public static class CityData implements Comparable<CityData> {
 		public String name;
 		public int administrativeLevel;
+		
+		@JsonIgnore
 		public Geometry boundary;
+		
 		public ArrayList<StreetData> streets = new ArrayList<>();
 		
 		public ArrayList<AddressData> addresses = new ArrayList<>();
 		
+		@JsonIgnore
 		ArrayList<RelationMember> osmShape = new ArrayList<>();
 
 		@Override
+		@JsonIgnore
 		public int compareTo(CityData o) {
 			return name.compareTo(o.name);
 		}
@@ -46,9 +52,13 @@ public class GeoExtractor {
 	
 	public static class StreetData {
 		public String name;
+		
+		@JsonIgnore
 		public Geometry path;
+		
 		public ArrayList<AddressData> addresses = new ArrayList<>();
 		
+		@JsonIgnore
 		ArrayList<WayNode> osmNodes = new ArrayList<>();
 	}
 	
@@ -57,8 +67,10 @@ public class GeoExtractor {
 		public String postCode;
 		public String streetName;
 		
+		@JsonIgnore
 		public Point position;
 		
+		@JsonIgnore
 		ArrayList<WayNode> osmNodes = new ArrayList<>();
 	}
 	
