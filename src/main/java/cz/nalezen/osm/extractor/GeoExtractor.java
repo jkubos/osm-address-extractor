@@ -485,25 +485,4 @@ public class GeoExtractor {
 		
 		return res;
 	}
-
-	
-
-	
 }
-
-/*
-
-
-
-private void sortCities(ArrayList<CityData> data) {
-	Collections.sort(data);
-}
-
-@SuppressWarnings("unused")
-private void printCities(ArrayList<CityData> data) {
-	for (CityData cd : data) {
-		System.out.println("-------------------");
-		System.out.printf("%s (%d)\n", cd.name, cd.administrativeLevel);
-	}
-}
-*/
