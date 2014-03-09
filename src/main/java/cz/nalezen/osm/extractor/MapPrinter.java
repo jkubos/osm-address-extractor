@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 
+import cz.nalezen.osm.extractor.GeoExtractor.AddressData;
 import cz.nalezen.osm.extractor.GeoExtractor.CityData;
 import cz.nalezen.osm.extractor.GeoExtractor.StreetData;
 
@@ -61,6 +62,7 @@ public class MapPrinter {
 	    	g.setColor(new Color(red,green,blue));
 	    	
 	    	renderStreets(g, cd);
+	    	renderAddresses(g, cd.addresses);
 	    	renderBoundary(g, cd);
 	    	renderName(g, cd);
 	    	
@@ -123,8 +125,19 @@ public class MapPrinter {
 //			Point tp = transform(sd.path.getCentroid().getX(), sd.path.getCentroid().getY());
 //
 //	    	g.drawString(sd.name, tp.x, tp.y);
+			
+			renderAddresses(g, sd.addresses);
 		}
 		
 		
+	}
+
+	private void renderAddresses(Graphics2D g, ArrayList<AddressData> addresses) {
+		for (AddressData ad : addresses) {
+			
+			Point tp = transform(ad.position.getX(), ad.position.getY());
+			
+			g.fillOval(tp.x-1, tp.y-1, 2, 2);
+		}
 	}
 }
