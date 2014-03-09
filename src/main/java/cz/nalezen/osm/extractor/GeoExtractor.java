@@ -66,12 +66,13 @@ public class GeoExtractor {
 		public String conscriptionNumber;
 		public String postCode;
 		public String streetName;
+		public String streetNumber;		
 		
 		@JsonIgnore
 		public Point position;
 		
 		@JsonIgnore
-		ArrayList<WayNode> osmNodes = new ArrayList<>();
+		ArrayList<WayNode> osmNodes = new ArrayList<>();		
 	}
 	
 	private EntitiesLookup lookup = new EntitiesLookup();
@@ -218,6 +219,7 @@ public class GeoExtractor {
 			
 			AddressData ad = new AddressData();
 			ad.conscriptionNumber = tags.get("addr:conscriptionnumber");
+			ad.streetNumber = tags.get("addr:streetnumber");
 			ad.postCode = tags.get("addr:postcode");
 			ad.streetName = tags.get("addr:street");
 		
