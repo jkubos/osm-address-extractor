@@ -30,10 +30,23 @@ extractor.renderResult("/home/jarek/map.png", 16000, 12000, envelope);
 		
 //traverse hierarchical data
 for (CityData city : extractor.getExtractedData()) {
+	
+	//city is having streets
 	for (StreetData street : city.streets) {
-		System.out.println(city.name+"->"+street.name);
+		for (AddressData address : street.addresses) {
+			System.out.println(city.name+"->"+street.name+"->"+address.streetNumber);
+		}
+	}
+	
+	//village without streets
+	for (AddressData address : city.addresses) {
+		System.out.println(city.name+"->"+address.streetNumber);
 	}
 }
+
+//save data as JSON - structure is self-describing
+JsonPersistor.save("/home/jarek/cz_addresses.json", extractor.getExtractedData());
+
 ```
 
 ## OpenStreetMap
