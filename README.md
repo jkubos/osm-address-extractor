@@ -83,3 +83,4 @@ Probably it would make a sense to use geo-db and other gis tools, I just wanted 
 * map features description: http://wiki.openstreetmap.org/wiki/Cs:Map_Features
 * boundary administrative: http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative
 * Czech data: http://osm.kyblsoft.cz/archiv/
+* Czech postcodes: http://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy ("Seznam PSČ částí obcí a obcí bez částí")
