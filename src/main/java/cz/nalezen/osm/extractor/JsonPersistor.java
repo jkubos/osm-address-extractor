@@ -10,25 +10,19 @@ import cz.nalezen.osm.extractor.GeoExtractor.CityData;
 
 public class JsonPersistor {
 	
-	private static class Root {
-		private ArrayList<CityData> cities;
-
-		public ArrayList<CityData> getCities() {
-			return cities;
-		}
-
-		public void setCities(ArrayList<CityData> cities) {
-			this.cities = cities;
-		}
+	static class Root {
+		public ArrayList<CityData> cities;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static void save(String path, ArrayList<CityData> data) {
 		try {
 			Root root = new Root();
-			root.setCities(data);
+			root.cities = data;
 			
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+			mapper.configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
 			
 			mapper.writeValue(new File(path), root);
 		} catch (Exception e) {

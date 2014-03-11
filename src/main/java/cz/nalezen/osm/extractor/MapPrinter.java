@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 
 import cz.nalezen.osm.extractor.GeoExtractor.AddressData;
 import cz.nalezen.osm.extractor.GeoExtractor.CityData;
@@ -110,26 +112,43 @@ public class MapPrinter {
 
 		for (StreetData sd : cd.streets) {
 			
-			Point prev = null;
+			com.vividsolutions.jts.geom.Point centroid = null;
 			
-			for (Coordinate p : sd.path.getCoordinates()) {
-	    		Point tp = transform(p.x, p.y);
-	    		
-		    	if (prev!=null) {
-		    		g.drawLine(prev.x, prev.y, tp.x, tp.y);
-		    	}
-		    	
-		    	prev = tp;
+			if (sd.path instanceof GeometryCollection) {
+				GeometryCollection gc = (GeometryCollection) sd.path;
+
+				for (int i=0;i<gc.getNumGeometries();++i) {
+					renderLineGeometry(g, gc.getGeometryN(i));
+					
+					centroid = gc.getGeometryN(i).getCentroid();
+				}				
+			} else {
+				renderLineGeometry(g, sd.path);
+				
+				centroid = sd.path.getCentroid();
 			}
 			
-//			Point tp = transform(sd.path.getCentroid().getX(), sd.path.getCentroid().getY());
-//
+//			Point tp = transform(centroid.getX(), centroid.getY());
 //	    	g.drawString(sd.name, tp.x, tp.y);
 			
 			renderAddresses(g, sd.addresses);
 		}
 		
 		
+	}
+
+	private void renderLineGeometry(Graphics2D g, Geometry geom) {
+		Point prev = null;
+		
+		for (Coordinate p : geom.getCoordinates()) {
+    		Point tp = transform(p.x, p.y);
+    		
+	    	if (prev!=null) {
+	    		g.drawLine(prev.x, prev.y, tp.x, tp.y);
+	    	}
+	    	
+	    	prev = tp;
+		}
 	}
 
 	private void renderAddresses(Graphics2D g, ArrayList<AddressData> addresses) {
