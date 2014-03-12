@@ -1,7 +1,9 @@
 package cz.nalezen.osm.extractor;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.util.ArrayList;
 
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
@@ -49,5 +51,36 @@ public class OsmAddressExtractor {
 	
 	public ArrayList<CityData> getExtractedData() {
 		return geoExtractor.getExtractedCities();
+	}
+
+	public void loadPostCodes(String path) {
+		
+		boolean first = true;
+		
+		try(BufferedReader br = new BufferedReader(new FileReader(path))) {
+		    for(String line; (line = br.readLine()) != null; ) {
+		    
+		    	//skip header
+		    	if (first) {
+		    		first = false;
+		    		continue;
+		    	}
+		    	
+		      parsePostCode(line);
+		    }
+		   
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void parsePostCode(String line) {
+		String[] items = line.split("\\|");
+		
+		if (items.length!=6) {
+			throw new RuntimeException();
+		}
+		
+		geoExtractor.definePostCode(items[5], items[1], items[4]);
 	}
 }
