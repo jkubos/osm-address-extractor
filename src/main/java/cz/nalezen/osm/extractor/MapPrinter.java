@@ -112,7 +112,7 @@ public class MapPrinter {
 
 		for (StreetData sd : cd.streets) {
 			
-			com.vividsolutions.jts.geom.Point centroid = null;
+//			com.vividsolutions.jts.geom.Point centroid = null;
 			
 			if (sd.path instanceof GeometryCollection) {
 				GeometryCollection gc = (GeometryCollection) sd.path;
@@ -120,12 +120,12 @@ public class MapPrinter {
 				for (int i=0;i<gc.getNumGeometries();++i) {
 					renderLineGeometry(g, gc.getGeometryN(i));
 					
-					centroid = gc.getGeometryN(i).getCentroid();
+//					centroid = gc.getGeometryN(i).getCentroid();
 				}				
 			} else {
 				renderLineGeometry(g, sd.path);
 				
-				centroid = sd.path.getCentroid();
+//				centroid = sd.path.getCentroid();
 			}
 			
 //			Point tp = transform(centroid.getX(), centroid.getY());

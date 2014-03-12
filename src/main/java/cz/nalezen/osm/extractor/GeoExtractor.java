@@ -30,9 +30,15 @@ import com.vividsolutions.jts.operation.linemerge.LineSequencer;
 
 public class GeoExtractor {
 	
+	public static class Geopoint {
+		public double longitude;
+		public double latitude;
+	}
+	
 	public static class DistrictData {
 		public String name;
 		public Geometry boundary;
+		
 		ArrayList<RelationMember> osmShape = new ArrayList<>();
 	}
 	
@@ -40,6 +46,8 @@ public class GeoExtractor {
 		public String name;
 		
 		public ArrayList<String> postCodes = new ArrayList<>();
+		
+		public Geopoint wgs84;
 		
 		@JsonIgnore
 		public Geometry boundary;
@@ -61,6 +69,8 @@ public class GeoExtractor {
 	public static class StreetData {
 		public String name;
 		
+		public Geopoint wgs84;
+		
 		@JsonIgnore
 		public Geometry path;
 		
@@ -72,6 +82,8 @@ public class GeoExtractor {
 	
 	public static class AddressData {
 		public String conscriptionNumber;
+		
+		public Geopoint wgs84;
 		
 		@JsonIgnore
 		public String postCode;
@@ -159,21 +171,24 @@ public class GeoExtractor {
 		if (!needsAnotherPass()) {
 			buildDistrictBoundaries();
 			buildCityBoundaries();
-//			buildStreetsPaths();
-//			buildAddressesPositions();
-//	
-//			linkCitiesAndStreets();
-//			linkStreetsAndAddresses();
-//			
-//			removeCityDuplicates();
-//			removeStreetDuplicates();
+			buildStreetsPaths();
+			buildAddressesPositions();
+	
+			linkCitiesAndStreets();
+			linkStreetsAndAddresses();
+			
+			removeCityDuplicates();
+			removeStreetDuplicates();
+			
+			localizeCities();
+			localizeStreets();
 			
 			extractPostNumber();
 		}
 		
 		++passNumber;
 	}
-
+	
 	public void handle(Entity entity) {
 		if (passNumber==0) {
 			handleCity(entity);
@@ -295,13 +310,6 @@ public class GeoExtractor {
 	private void buildCityBoundaries() {
 		for (CityData cd : cities) {
 			cd.boundary = extractBoundary(cd.name, cd.osmShape);
-			
-//			if (cd.boundary==null) {
-//				System.out.println(cd.name+": null geometry");
-//			} else if (!cd.boundary.isValid()) {
-//				System.out.println(cd.name+": invalid geometry");
-//			}
-			
 			cd.osmShape = null;
 		}
 	}
@@ -362,6 +370,13 @@ public class GeoExtractor {
 	private void buildAddressesPositions() {
 		for (AddressData ad : addresses) {
 			if (ad.position!=null) {
+				
+				Geopoint gp = new Geopoint();
+				gp.longitude = ad.position.getX();
+				gp.latitude = ad.position.getY();
+				
+				ad.wgs84 = gp;
+				
 				continue;
 			}
 						
@@ -369,6 +384,12 @@ public class GeoExtractor {
 			
 			if (path!=null) {
 				ad.position = path.getCentroid();
+				
+				Geopoint gp = new Geopoint();
+				gp.longitude = ad.position.getX();
+				gp.latitude = ad.position.getY();
+				
+				ad.wgs84 = gp;
 			}
 			
 			ad.osmNodes = null;
@@ -579,6 +600,36 @@ public class GeoExtractor {
 		}
 	}
 	
+	private void localizeCities() {
+		for (CityData cd : cities) {
+			if (cd.boundary!=null) {
+				Point centroid = cd.boundary.getCentroid();
+				
+				if (!centroid.isEmpty()) {
+					Geopoint gp = new Geopoint();
+					gp.longitude = centroid.getX();
+					gp.latitude = centroid.getY();
+					
+					cd.wgs84 = gp;
+				}
+			}
+		}
+	}
+	
+	private void localizeStreets() {
+		for (StreetData sd : streets) {
+			if (sd.path!=null) {
+				Point centroid = sd.path.getCentroid();
+				
+				Geopoint gp = new Geopoint();
+				gp.longitude = centroid.getX();
+				gp.latitude = centroid.getY();
+				
+				sd.wgs84 = gp;
+			}
+		}
+	}
+
 	private void extractPostNumber() {
 		
 		long last = System.currentTimeMillis();
