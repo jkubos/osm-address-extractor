@@ -47,6 +47,7 @@ public class GeoExtractor {
 		
 		public ArrayList<String> postCodes = new ArrayList<>();
 		
+		@JsonIgnore
 		public Geopoint wgs84;
 		
 		@JsonIgnore
@@ -69,6 +70,7 @@ public class GeoExtractor {
 	public static class StreetData {
 		public String name;
 		
+		@JsonIgnore
 		public Geopoint wgs84;
 		
 		@JsonIgnore
@@ -83,6 +85,9 @@ public class GeoExtractor {
 	public static class AddressData {
 		public String conscriptionNumber;
 		
+		public String streetNumber;
+		
+		@JsonIgnore
 		public Geopoint wgs84;
 		
 		@JsonIgnore
@@ -90,9 +95,6 @@ public class GeoExtractor {
 		
 		@JsonIgnore
 		public String streetName;
-		
-		
-		public String streetNumber;		
 		
 		@JsonIgnore
 		public Point position;
