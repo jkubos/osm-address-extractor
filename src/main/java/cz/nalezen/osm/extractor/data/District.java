@@ -42,5 +42,17 @@ public class District {
 		cities.add(city);
 		
 		return city;
+	}
+	
+	public City lookupCity(String cityName) {
+		String cname = cityName.trim().toLowerCase();
+
+		for (City city : cities) {
+			if (city.getName().equals(cname)) {
+				return city;
+			}
+		}
+		
+		return null;
 	}	
 }

@@ -11,7 +11,9 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import com.vividsolutions.jts.geom.Envelope;
 
 import crosby.binary.osmosis.OsmosisReader;
-import cz.nalezen.osm.extractor.GeoExtractor.CityData;
+import cz.nalezen.osm.extractor.osm.CustomSink;
+import cz.nalezen.osm.extractor.osm.GeoExtractor;
+import cz.nalezen.osm.extractor.osm.GeoExtractor.CityData;
 
 public class OsmAddressExtractor {
 
@@ -53,36 +55,9 @@ public class OsmAddressExtractor {
 		return geoExtractor.getExtractedCities();
 	}
 
-	public void loadPostCodes(String path) {
-		
-		boolean first = true;
-		
-		try(BufferedReader br = new BufferedReader(new FileReader(path))) {
-		    for(String line; (line = br.readLine()) != null; ) {
-		    
-		    	//skip header
-		    	if (first) {
-		    		first = false;
-		    		continue;
-		    	}
-		    	
-		      parsePostCode(line);
-		    }
-		   
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+	
 
-	private void parsePostCode(String line) {
-		String[] items = line.split("\\|");
-		
-		if (items.length!=6) {
-			throw new RuntimeException();
-		}
-		
-		geoExtractor.definePostCode(items[5], items[1], items[4]);
-	}
+	
 
 	public void extractMvcrAddresses(String string) {
 		// TODO Auto-generated method stub

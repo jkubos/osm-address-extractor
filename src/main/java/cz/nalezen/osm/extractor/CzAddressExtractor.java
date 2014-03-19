@@ -5,6 +5,7 @@ import java.io.File;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
+import cz.nalezen.osm.extractor.cp.CzechPostDataLoader;
 import cz.nalezen.osm.extractor.data.CzechRepublicAddresses;
 import cz.nalezen.osm.extractor.mvcr.MvcrDataLoader;
 

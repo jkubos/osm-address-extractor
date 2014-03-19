@@ -1,4 +1,4 @@
-package cz.nalezen.osm.extractor;
+package cz.nalezen.osm.extractor.osm;
 
 import java.util.Map;
 

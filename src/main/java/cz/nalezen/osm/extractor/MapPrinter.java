@@ -15,9 +15,9 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 
-import cz.nalezen.osm.extractor.GeoExtractor.AddressData;
-import cz.nalezen.osm.extractor.GeoExtractor.CityData;
-import cz.nalezen.osm.extractor.GeoExtractor.StreetData;
+import cz.nalezen.osm.extractor.osm.GeoExtractor.AddressData;
+import cz.nalezen.osm.extractor.osm.GeoExtractor.CityData;
+import cz.nalezen.osm.extractor.osm.GeoExtractor.StreetData;
 
 public class MapPrinter {
 	private int width;

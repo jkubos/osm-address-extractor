@@ -28,4 +28,16 @@ public class CzechRepublicAddresses {
 		
 		return district;
 	}
+
+	public District lookupDistrict(String name) {
+		String cname = name.toLowerCase().trim();
+		
+		for (District district : districts) {
+			if (district.getName().equals(cname)) {
+				return district;
+			}
+		}
+		
+		return null;
+	}
 }

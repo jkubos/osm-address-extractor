@@ -44,9 +44,33 @@ class MvcrSaxHandler extends DefaultHandler {
 			logger.error(String.format("Unhandled tag '%s'!", qName));
 		}
 	}
+	
+	@Override
+	public void endElement (String uri, String localName, String qName) throws SAXException {
+		if (qName.equals("adresy")) {
+			//root
+		} else if (qName.equals("oblast")) {
+			districtCtx = null;
+		} else if (qName.equals("obec")) {
+			cityCtx = null;
+		} else if (qName.equals("cast")) {
+			//not used
+		} else if (qName.equals("ulice")) {
+			streetCtx = null;
+		} else if (qName.equals("a")) {
+			//
+		} else {
+			logger.error(String.format("Unhandled tag '%s'!", qName));
+		}
+	}
 
 	private void handleDistrict(String qName, Attributes attributes) {
 		String districtName = attributes.getValue("okres");
+		
+		//ugly hack to define district for capital city Prague compatible with Czech Post data
+		if ("praha".equals(attributes.getValue("typ"))) {
+			districtName = "Hlavní město Praha";
+		}
 		
 		if (StringUtils.isBlank(districtName)) {
 			logger.warn(String.format("Problematic district: name=%s okres=%s kraj=%s\n", 
@@ -57,8 +81,6 @@ class MvcrSaxHandler extends DefaultHandler {
 		}
 		
 		districtCtx = root.assureDistrict(districtName);
-		cityCtx = null;
-		streetCtx = null;
 	}
 
 	private void handleCity(String qName, Attributes attributes) {
