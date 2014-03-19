@@ -30,4 +30,16 @@ public class JsonPersistor {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public static ArrayList<CityData> load(String path) {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			Root root = mapper.readValue(new File(path), Root.class);
+			
+			return root.cities;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 }

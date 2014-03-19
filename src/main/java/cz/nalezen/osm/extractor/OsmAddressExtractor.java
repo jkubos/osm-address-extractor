@@ -83,4 +83,14 @@ public class OsmAddressExtractor {
 		
 		geoExtractor.definePostCode(items[5], items[1], items[4]);
 	}
+
+	public void extractMvcrAddresses(String string) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void extractPostCodes(String string) {
+		// TODO Auto-generated method stub
+		
+	}
 }
