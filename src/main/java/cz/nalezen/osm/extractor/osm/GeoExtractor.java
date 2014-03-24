@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.log4j.Logger;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
@@ -24,6 +25,8 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.operation.buffer.BufferOp;
 import com.vividsolutions.jts.operation.linemerge.LineSequencer;
+
+import cz.nalezen.osm.extractor.osm.OsmEntities.AddressData;
 
 public class GeoExtractor {
 	
@@ -221,17 +224,21 @@ public class GeoExtractor {
 	private void handleAddress(Entity entity) {
 		HashMap<String, String> tags = extractMap(entity.getTags(), false);
 		
-		if (tags.containsKey("addr:conscriptionnumber") || tags.containsKey("addr:streetnumber") || tags.containsKey("addr:provisionalnumber")) {
+		if (tags.containsKey("addr:conscriptionnumber") 
+			|| tags.containsKey("addr:streetnumber") 
+			|| tags.containsKey("addr:provisionalnumber")
+			|| tags.containsKey("addr:housenumber")) {
 			
 			OsmEntities.AddressData ad = new OsmEntities.AddressData();
 			
-			String conscNr = StringUtils.defaultIfBlank(tags.get("addr:conscriptionnumber"), "");
-			String provisNr = StringUtils.defaultIfBlank(tags.get("addr:provisionalnumber"), "");
-			String streetNr = StringUtils.defaultIfBlank(tags.get("addr:streetnumber"), "");
-			String streetName = StringUtils.defaultIfBlank(tags.get("addr:street"), "");
+			fillAddress(ad, 
+					tags.get("addr:conscriptionnumber"), 
+					tags.get("addr:provisionalnumber"), 
+					tags.get("addr:streetnumber"), 
+					tags.get("addr:housenumber"));
 			
-			ad.conscriptionNumber = Math.max(NumberUtils.toInt(conscNr, -1), NumberUtils.toInt(provisNr, -1));
-			ad.streetNumber = NumberUtils.toInt(streetNr, -1);
+			String streetName = StringUtils.defaultIfBlank(tags.get("addr:street"), "");
+
 			ad.streetName = streetName.trim().toLowerCase();
 		
 			if (entity instanceof Node) {
@@ -252,6 +259,45 @@ public class GeoExtractor {
 		}
 	}
 	
+	//http://wiki.openstreetmap.org/wiki/Cs:WikiProject_Czech_Republic/Address_system
+	private void fillAddress(AddressData ad, String conscription, String provisional, String street, String housenumber) {
+		if (!StringUtils.isBlank(conscription)) {
+			ad.mainNumber = conscription.toLowerCase().trim();
+		}
+
+		if (StringUtils.isBlank(ad.mainNumber) && !StringUtils.isBlank(provisional)) {
+			ad.mainNumber = provisional.toLowerCase().trim();
+		}
+		
+		if (!StringUtils.isBlank(street)) {
+			ad.auxNumber = street.toLowerCase().trim();
+		}
+		
+		if (!StringUtils.isBlank(housenumber) && (StringUtils.isBlank(ad.mainNumber) || StringUtils.isBlank(ad.auxNumber))) {
+			Pattern p1 = Pattern.compile("([0-9]+)/([0-9]+[a-z]{0,1})");
+			Pattern p2 = Pattern.compile("([0-9]+[a-z]{0,1})");
+			Pattern p3 = Pattern.compile("ev ?\\. ?([0-9]+) ?/ ?([0-9]+[a-z]{0,1})");
+			Pattern p4 = Pattern.compile("ev ?\\. ?([0-9]+)");
+			
+			Matcher m1 = p1.matcher(housenumber);
+			Matcher m2 = p2.matcher(housenumber);
+			Matcher m3 = p3.matcher(housenumber);
+			Matcher m4 = p4.matcher(housenumber);
+			
+			if (m1.matches()) {
+				ad.mainNumber = m1.group(1).toLowerCase().trim();
+				ad.auxNumber = m1.group(2).toLowerCase().trim();
+			} else if (m2.matches() && StringUtils.isBlank(ad.mainNumber)) {
+				ad.mainNumber = m2.group(1).toLowerCase().trim();
+			} else if (m3.matches() && StringUtils.isBlank(ad.mainNumber)) {
+				ad.mainNumber = m3.group(1).toLowerCase().trim();
+				ad.auxNumber = m3.group(2).toLowerCase().trim();
+			} else if (m4.matches() && StringUtils.isBlank(ad.mainNumber)) {
+				ad.mainNumber = m4.group(1).toLowerCase().trim();
+			}
+		}
+	}
+
 	private void buildDistrictBoundaries() {
 		for (OsmEntities.DistrictData dd : districts) {
 			dd.boundary = extractBoundary(dd.name, dd.osmShape);

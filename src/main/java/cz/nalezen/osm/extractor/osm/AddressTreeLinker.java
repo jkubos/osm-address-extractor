@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.vividsolutions.jts.geom.Envelope;
@@ -164,19 +165,19 @@ public class AddressTreeLinker {
 				if (matchedAddresses.size()>0) {
 					address.setPosition(new PointWgs84(matchedAddresses.get(0).position));
 				} else {
-					logger.warn(String.format("Address not found in OSM '%d/%d'", address.getStreetNumber(), address.getConscriptionNumber()));
+					logger.warn(String.format("Address not found in OSM '%s/%s'", address.getMainNumber(), address.getAuxNumber()));
 				}
 			}
 		}
 	}
 
 	private boolean numbersMatch(AddressData addrData, Address addr, boolean strict) {
-		if (addrData.conscriptionNumber>0 && addrData.conscriptionNumber==addr.getConscriptionNumber()) {
+		if (!StringUtils.isBlank(addrData.mainNumber)  && addrData.mainNumber.equals(addr.getMainNumber())) {
 			return true;
 		}
 		
 		if (!strict) {
-			if (addrData.streetNumber>0 && addrData.streetNumber==addr.getStreetNumber()) {
+			if (!StringUtils.isBlank(addrData.auxNumber)  && addrData.auxNumber.equals(addr.getAuxNumber())) {
 				return true;
 			}
 		}

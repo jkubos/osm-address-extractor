@@ -29,8 +29,9 @@ public class OsmEntities {
 	}
 
 	public static class AddressData {
-		public int conscriptionNumber;
-		public int streetNumber;
+		public String mainNumber;
+		public String auxNumber;
+		
 		public Point position;
 		public ArrayList<WayNode> osmNodes = new ArrayList<>();
 		public String streetName;		

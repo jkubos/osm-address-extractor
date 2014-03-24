@@ -87,16 +87,16 @@ public class City {
 	}
 	
 	@JsonIgnore
-	public Address assureAddress(int streetNr, int conscriptionNr) {
+	public Address assureAddress(String mainNr, String auxNr) {
 		for (Address address : addresses) {
-			if (streetNr==address.getStreetNumber() && conscriptionNr==address.getConscriptionNumber()) {
+			if (mainNr==address.getMainNumber() && auxNr==address.getAuxNumber()) {
 				return address;
 			}
 		}
 		
 		Address address = new Address();
-		address.setConscriptionNumber(conscriptionNr);
-		address.setStreetNumber(streetNr);
+		address.setMainNumber(mainNr);
+		address.setAuxNumber(auxNr);
 		
 		addresses.add(address);
 		

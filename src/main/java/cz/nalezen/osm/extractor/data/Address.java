@@ -1,25 +1,9 @@
 package cz.nalezen.osm.extractor.data;
 
 public class Address {
-	private int conscriptionNumber;
-	private int streetNumber;
+	private String mainNumber;
+	private String auxNumber;
 	private PointWgs84 position;
-	
-	public int getConscriptionNumber() {
-		return conscriptionNumber;
-	}
-	
-	public void setConscriptionNumber(int conscriptionNumber) {
-		this.conscriptionNumber = conscriptionNumber;
-	}
-	
-	public int getStreetNumber() {
-		return streetNumber;
-	}
-	
-	public void setStreetNumber(int streetNumber) {
-		this.streetNumber = streetNumber;
-	}
 	
 	public PointWgs84 getPosition() {
 		return position;
@@ -27,5 +11,21 @@ public class Address {
 	
 	public void setPosition(PointWgs84 position) {
 		this.position = position;
+	}
+
+	public String getMainNumber() {
+		return mainNumber;
+	}
+
+	public void setMainNumber(String mainNumber) {
+		this.mainNumber = mainNumber;
+	}
+
+	public String getAuxNumber() {
+		return auxNumber;
+	}
+
+	public void setAuxNumber(String auxNumber) {
+		this.auxNumber = auxNumber;
 	}	
 }

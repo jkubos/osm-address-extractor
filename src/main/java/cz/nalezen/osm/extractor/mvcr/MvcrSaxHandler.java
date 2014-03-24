@@ -119,13 +119,13 @@ class MvcrSaxHandler extends DefaultHandler {
 			return;
 		}
 		
-		int streetNr = NumberUtils.toInt(attributes.getValue("o"), -1);
-		int conscriptionNr  = NumberUtils.toInt(StringUtils.isBlank(attributes.getValue("p")) ? attributes.getValue("e") : attributes.getValue("p"), -1);
+		String auxNr = attributes.getValue("o");
+		String mainNr = StringUtils.isBlank(attributes.getValue("p")) ? attributes.getValue("e") : attributes.getValue("p");
 		
 		if (streetCtx!=null) {
-			streetCtx.assureAddress(streetNr, conscriptionNr);
+			streetCtx.assureAddress(mainNr, auxNr);
 		} else {
-			cityCtx.assureAddress(streetNr, conscriptionNr);
+			cityCtx.assureAddress(mainNr, auxNr);
 		}
 	}
 	
