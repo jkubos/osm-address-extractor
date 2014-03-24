@@ -145,31 +145,41 @@ public class AddressTreeLinker {
 	}
 
 	private void linkAddresses(ArrayList<Address> addresses, Geometry geom) {
-		double maxDistance = appoximateMetersToDegrees(50.0);
+		double maxDistance = appoximateMetersToDegrees(200.0);
 		
 		@SuppressWarnings("unchecked")
 		List<AddressData> allAddresses = addressesIndex.query(geom.getEnvelopeInternal());		
 		List<AddressData> innerAddresses = allAddresses.stream().filter(address -> geom.distance(address.position)<maxDistance).collect(Collectors.toList());
 		
 		for (Address address : addresses) {
-			List<AddressData> matchedAddresses = innerAddresses.stream().filter(a -> numbersMatch(a, address)).collect(Collectors.toList());
+			//match by conscription number
+			List<AddressData> matchedAddresses = innerAddresses.stream().filter(a -> numbersMatch(a, address, true)).collect(Collectors.toList());
 			
 			if (matchedAddresses.size()>0) {
 				address.setPosition(new PointWgs84(matchedAddresses.get(0).position));
 			} else {
-				logger.warn(String.format("Address not found in OSM '%d/%d'", address.getStreetNumber(), address.getConscriptionNumber()));
+				//match at least street number
+				innerAddresses.stream().filter(a -> numbersMatch(a, address, false)).collect(Collectors.toList());
+				
+				if (matchedAddresses.size()>0) {
+					address.setPosition(new PointWgs84(matchedAddresses.get(0).position));
+				} else {
+					logger.warn(String.format("Address not found in OSM '%d/%d'", address.getStreetNumber(), address.getConscriptionNumber()));
+				}
 			}
 		}
 	}
 
-	private boolean numbersMatch(AddressData addrData, Address addr) {
+	private boolean numbersMatch(AddressData addrData, Address addr, boolean strict) {
 		if (addrData.conscriptionNumber>0 && addrData.conscriptionNumber==addr.getConscriptionNumber()) {
 			return true;
 		}
 		
-//		if (addrData.streetNumber>0 && addrData.streetNumber==addr.getStreetNumber()) {
-//			return true;
-//		}
+		if (!strict) {
+			if (addrData.streetNumber>0 && addrData.streetNumber==addr.getStreetNumber()) {
+				return true;
+			}
+		}
 		
 		return false;
 	}
