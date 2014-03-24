@@ -93,7 +93,6 @@ public class AddressTreeLinker {
 				continue;
 			}
 			
-			System.out.println(district.getName());
 			linkCities(district, osmDistrict.get());
 		}
 	}
@@ -112,8 +111,7 @@ public class AddressTreeLinker {
 			}
 			
 			city.setPosition(new PointWgs84(osmCity.get().boundary.getCentroid()));
-			
-			System.out.println("\t"+city.getName());
+		
 			linkStreets(city, osmCity.get());
 			linkAddresses(city.getAddresses(), osmCity.get().boundary);
 		}
@@ -141,8 +139,7 @@ public class AddressTreeLinker {
 			}
 			
 			street.setPosition(new PointWgs84(way.getCentroid()));
-			
-			System.out.println("\t\t"+street.getName());
+
 			linkAddresses(street.getAddresses(), way);
 		}
 	}

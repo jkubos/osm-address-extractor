@@ -168,6 +168,10 @@ public class GeoExtractor {
 	}
 
 	private void extractCity(Relation relation, HashMap<String, String> tags) {
+		if (StringUtils.isBlank(tags.get("name"))) {
+			return;
+		}
+		
 		OsmEntities.CityData cd = new OsmEntities.CityData();
 		cd.name = tags.get("name").toLowerCase().trim();
 
@@ -217,15 +221,16 @@ public class GeoExtractor {
 	private void handleAddress(Entity entity) {
 		HashMap<String, String> tags = extractMap(entity.getTags(), false);
 		
-		if (tags.containsKey("addr:conscriptionnumber") || tags.containsKey("addr:streetnumber")) {
+		if (tags.containsKey("addr:conscriptionnumber") || tags.containsKey("addr:streetnumber") || tags.containsKey("addr:provisionalnumber")) {
 			
 			OsmEntities.AddressData ad = new OsmEntities.AddressData();
 			
 			String conscNr = StringUtils.defaultIfBlank(tags.get("addr:conscriptionnumber"), "");
+			String provisNr = StringUtils.defaultIfBlank(tags.get("addr:provisionalnumber"), "");
 			String streetNr = StringUtils.defaultIfBlank(tags.get("addr:streetnumber"), "");
 			String streetName = StringUtils.defaultIfBlank(tags.get("addr:street"), "");
 			
-			ad.conscriptionNumber = NumberUtils.toInt(conscNr, -1);
+			ad.conscriptionNumber = Math.max(NumberUtils.toInt(conscNr, -1), NumberUtils.toInt(provisNr, -1));
 			ad.streetNumber = NumberUtils.toInt(streetNr, -1);
 			ad.streetName = streetName.trim().toLowerCase();
 		
