@@ -3,12 +3,11 @@ package cz.nalezen.osm.extractor.osm;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.annotate.JsonIgnore;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.log4j.Logger;
 import org.openstreetmap.osmosis.core.domain.v0_6.Entity;
 import org.openstreetmap.osmosis.core.domain.v0_6.Node;
 import org.openstreetmap.osmosis.core.domain.v0_6.Relation;
@@ -23,102 +22,27 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.index.quadtree.Quadtree;
 import com.vividsolutions.jts.operation.buffer.BufferOp;
 import com.vividsolutions.jts.operation.linemerge.LineSequencer;
 
 public class GeoExtractor {
 	
-	public static class Geopoint {
-		public double longitude;
-		public double latitude;
-	}
-	
-	public static class DistrictData {
-		public String name;
-		public Geometry boundary;
-		
-		ArrayList<RelationMember> osmShape = new ArrayList<>();
-	}
-	
-	public static class CityData implements Comparable<CityData> {
-		public String name;
-		
-		public ArrayList<String> postCodes = new ArrayList<>();
-		
-		@JsonIgnore
-		public Geopoint wgs84;
-		
-		@JsonIgnore
-		public Geometry boundary;
-		
-		public ArrayList<StreetData> streets = new ArrayList<>();
-		
-		public ArrayList<AddressData> addresses = new ArrayList<>();
-		
-		@JsonIgnore
-		ArrayList<RelationMember> osmShape = new ArrayList<>();
-
-		@Override
-		@JsonIgnore
-		public int compareTo(CityData o) {
-			return name.compareTo(o.name);
-		}
-	}
-	
-	public static class StreetData {
-		public String name;
-		
-		@JsonIgnore
-		public Geopoint wgs84;
-		
-		@JsonIgnore
-		public Geometry path;
-		
-		public ArrayList<AddressData> addresses = new ArrayList<>();
-		
-		@JsonIgnore
-		ArrayList<WayNode> osmNodes = new ArrayList<>();
-	}
-	
-	public static class AddressData {
-		public String conscriptionNumber;
-		
-		public String streetNumber;
-		
-		@JsonIgnore
-		public Geopoint wgs84;
-		
-		@JsonIgnore
-		public String postCode;
-		
-		@JsonIgnore
-		public String streetName;
-		
-		@JsonIgnore
-		public Point position;
-		
-		@JsonIgnore
-		ArrayList<WayNode> osmNodes = new ArrayList<>();		
-	}
-	
 	private EntitiesLookup lookup = new EntitiesLookup();
 	
-	private ArrayList<DistrictData> districts = new ArrayList<>();
-	private ArrayList<CityData> cities = new ArrayList<>();
-	private ArrayList<StreetData> streets = new ArrayList<>();
-	private ArrayList<AddressData> addresses = new ArrayList<>();
-	
-	private HashMap<String, HashSet<String>> postcodeMap = new HashMap<>();
-	private HashMap<String, String> postCodeToDistrict = new HashMap<>();
+	private ArrayList<OsmEntities.DistrictData> districts = new ArrayList<>();
+	private ArrayList<OsmEntities.CityData> cities = new ArrayList<>();
+	private ArrayList<OsmEntities.StreetData> streets = new ArrayList<>();
+	private ArrayList<OsmEntities.AddressData> addresses = new ArrayList<>();
 	
 	private int passNumber = 0;
 	
 	private GeometryFactory gf = new GeometryFactory();
+
+	private static final Logger logger = Logger.getLogger(GeoExtractor.class);
 	
 	public GeoExtractor() {
 		
+		//when way is loaded, request load of its points
 		lookup.addHandler(new EntitiesLookup.EntityHandler() {
 			@Override
 			public void handle(Entity entity) {
@@ -133,26 +57,33 @@ public class GeoExtractor {
 		});
 	}
 	
-	public void definePostCode(String name, String postCode, String district) {
-		
-		if (!postcodeMap.containsKey(name)) {
-			postcodeMap.put(name, new HashSet<String>());
-		}
-		
-		postcodeMap.get(name).add(postCode);
-		
-		postCodeToDistrict.put(postCode, district);
+	public ArrayList<OsmEntities.DistrictData> getDistricts() {
+		return districts;
+	}
+
+	public ArrayList<OsmEntities.CityData> getCities() {
+		return cities;
+	}
+
+	public ArrayList<OsmEntities.StreetData> getStreets() {
+		return streets;
+	}
+
+	public ArrayList<OsmEntities.AddressData> getAddresses() {
+		return addresses;
 	}
 	
-	public ArrayList<CityData> getExtractedCities() {
+	public ArrayList<OsmEntities.CityData> getExtractedCities() {
 		return cities;
 	}
 	
 	public void reset() {
 		lookup.reset();
 		
+		districts.clear();
 		cities.clear();
 		streets.clear();
+		addresses.clear();
 		
 		passNumber = 0;
 	}
@@ -167,25 +98,22 @@ public class GeoExtractor {
 	
 	public void passStart() {
 		lookup.newRound();
+		logger.info("------------- Starting OSM pass #"+passNumber+" -------------");
 	}
 	
 	public void passDone() {
 		if (!needsAnotherPass()) {
+			logger.info("------------- Build districts boundaries -------------");
 			buildDistrictBoundaries();
+			
+			logger.info("------------- Build cities boundaries -------------");
 			buildCityBoundaries();
+			
+			logger.info("------------- Build streets paths -------------");
 			buildStreetsPaths();
+			
+			logger.info("------------- Build addresses positions -------------");
 			buildAddressesPositions();
-	
-			linkCitiesAndStreets();
-			linkStreetsAndAddresses();
-			
-			removeCityDuplicates();
-			removeStreetDuplicates();
-			
-			localizeCities();
-			localizeStreets();
-			
-			extractPostNumber();
 		}
 		
 		++passNumber;
@@ -193,7 +121,7 @@ public class GeoExtractor {
 	
 	public void handle(Entity entity) {
 		if (passNumber==0) {
-			handleCity(entity);
+			handleAdministrativeBoundary(entity);
 			handleStreet(entity);
 			handleAddress(entity);
 		}
@@ -201,7 +129,7 @@ public class GeoExtractor {
 		lookup.addIfRequested(entity);
 	}
 
-	private void handleCity(Entity entity) {
+	private void handleAdministrativeBoundary(Entity entity) {
 		if (!(entity instanceof Relation)) {
 			return;
 		}
@@ -214,35 +142,47 @@ public class GeoExtractor {
 			int adminLevel = Integer.parseInt(tags.get("admin_level"));
 			
 			if (adminLevel==8) {
-				CityData cd = new CityData();
-				cd.name = tags.get("name");
-	
-				for (RelationMember mem : relation.getMembers()) {
-					if (!"outer".equals(mem.getMemberRole())) {
-						continue;
-					}
-					
-					cd.osmShape.add(mem);
-					lookup.requestLookup(mem.getMemberId());
-				}
-				
-				cities.add(cd);
+				extractCity(relation, tags);
 			} else if (adminLevel==7) {
-				DistrictData dd = new DistrictData();
-				dd.name = tags.get("name").replaceAll("okres ", "");
-	
-				for (RelationMember mem : relation.getMembers()) {
-					if (!"outer".equals(mem.getMemberRole())) {
-						continue;
-					}
-					
-					dd.osmShape.add(mem);
-					lookup.requestLookup(mem.getMemberId());
-				}
-				
-				districts.add(dd);
+				extractDistrict(relation, tags);
 			}
 		}
+	}
+
+	private void extractDistrict(Relation relation, HashMap<String, String> tags) {
+		OsmEntities.DistrictData dd = new OsmEntities.DistrictData();
+		dd.name = tags.get("name").replaceAll("okres ", "").toLowerCase().trim();
+
+		for (RelationMember mem : relation.getMembers()) {
+			
+			//only outer region (http://wiki.openstreetmap.org/wiki/Relation#Roles)
+			if (!"outer".equals(mem.getMemberRole())) {
+				continue;
+			}
+			
+			dd.osmShape.add(mem);
+			lookup.requestLookup(mem.getMemberId());
+		}
+		
+		districts.add(dd);
+	}
+
+	private void extractCity(Relation relation, HashMap<String, String> tags) {
+		OsmEntities.CityData cd = new OsmEntities.CityData();
+		cd.name = tags.get("name").toLowerCase().trim();
+
+		for (RelationMember mem : relation.getMembers()) {
+			
+			//only outer region (http://wiki.openstreetmap.org/wiki/Relation#Roles)
+			if (!"outer".equals(mem.getMemberRole())) {
+				continue;
+			}
+			
+			cd.osmShape.add(mem);
+			lookup.requestLookup(mem.getMemberId());
+		}
+		
+		cities.add(cd);
 	}
 	
 	private void handleStreet(Entity entity) {
@@ -254,7 +194,7 @@ public class GeoExtractor {
 		
 		HashMap<String, String> tags = extractMap(way.getTags(), false);
 		
-		if ("residential".equals(tags.get("highway"))) {
+		if (tags.containsKey("highway")) {
 			
 			String name = tags.get("name");
 			
@@ -262,8 +202,8 @@ public class GeoExtractor {
 				return;
 			}
 			
-			StreetData sd = new StreetData();
-			sd.name = name;
+			OsmEntities.StreetData sd = new OsmEntities.StreetData();
+			sd.name = name.toLowerCase().trim();
 
 			for (WayNode wn : way.getWayNodes()) {
 				lookup.requestLookup(wn.getNodeId());
@@ -277,17 +217,22 @@ public class GeoExtractor {
 	private void handleAddress(Entity entity) {
 		HashMap<String, String> tags = extractMap(entity.getTags(), false);
 		
-		if (tags.containsKey("addr:conscriptionnumber")) {
+		if (tags.containsKey("addr:conscriptionnumber") || tags.containsKey("addr:streetnumber")) {
 			
-			AddressData ad = new AddressData();
-			ad.conscriptionNumber = tags.get("addr:conscriptionnumber");
-			ad.streetNumber = tags.get("addr:streetnumber");
-			ad.postCode = tags.get("addr:postcode");
-			ad.streetName = tags.get("addr:street");
+			OsmEntities.AddressData ad = new OsmEntities.AddressData();
+			
+			String conscNr = StringUtils.defaultIfBlank(tags.get("addr:conscriptionnumber"), "");
+			String streetNr = StringUtils.defaultIfBlank(tags.get("addr:streetnumber"), "");
+			String streetName = StringUtils.defaultIfBlank(tags.get("addr:street"), "");
+			
+			ad.conscriptionNumber = NumberUtils.toInt(conscNr, -1);
+			ad.streetNumber = NumberUtils.toInt(streetNr, -1);
+			ad.streetName = streetName.trim().toLowerCase();
 		
 			if (entity instanceof Node) {
 				Node node = (Node) entity;
 				
+				//load position directly
 				ad.position = gf.createPoint(new Coordinate(node.getLongitude(), node.getLatitude()));
 			} else if (entity instanceof Way) {
 				Way way = (Way) entity;
@@ -303,16 +248,41 @@ public class GeoExtractor {
 	}
 	
 	private void buildDistrictBoundaries() {
-		for (DistrictData dd : districts) {
+		for (OsmEntities.DistrictData dd : districts) {
 			dd.boundary = extractBoundary(dd.name, dd.osmShape);
 			dd.osmShape = null;
 		}
 	}
 
 	private void buildCityBoundaries() {
-		for (CityData cd : cities) {
+		for (OsmEntities.CityData cd : cities) {
 			cd.boundary = extractBoundary(cd.name, cd.osmShape);
 			cd.osmShape = null;
+		}
+	}
+	
+	private void buildStreetsPaths() {
+		for (OsmEntities.StreetData sd : streets) {
+			sd.path = extractLineString(sd.name, sd.osmNodes);
+			sd.osmNodes = null;
+		}
+	}
+	
+	private void buildAddressesPositions() {
+		for (OsmEntities.AddressData ad : addresses) {
+			
+			//address already defined (maybe in handleAddess?)
+			if (ad.position!=null) {
+				continue;
+			}
+						
+			LineString path = extractLineString(ad.streetName, ad.osmNodes);
+			
+			if (path!=null) {
+				ad.position = path.getCentroid();
+			}
+			
+			ad.osmNodes = null;
 		}
 	}
 	
@@ -327,13 +297,13 @@ public class GeoExtractor {
 			}
 			
 			if (!(other instanceof Way)) {
-				System.out.println("Not way type ("+other.getClass().getSimpleName()+") boundary in "+name);
+				logger.warn("Not way type ("+other.getClass().getSimpleName()+") boundary in "+name);
 				continue;
 			}
 			
 			Way way = (Way) other;
 			
-			LineString ls = extractLineString(way);
+			LineString ls = extractLineString(name, way.getWayNodes());
 			
 			if (ls!=null) {
 				seq.add(ls);
@@ -345,332 +315,31 @@ public class GeoExtractor {
 		try {
 			geom = seq.getSequencedLineStrings();
 		} catch (Exception e) {
-			System.out.println("Geom exception '"+e.getMessage()+"' for: "+name);
+			logger.warn("Geom exception '"+e.getMessage()+"' for: "+name);
 		}
 		
-		if (geom!=null) {
+		if (geom!=null) {			
 			CoordinateList list = new CoordinateList(geom.getCoordinates());
 			list.closeRing();
 			
 			LinearRing ring = gf.createLinearRing(list.toCoordinateArray());
 
 			//cleanup geometry (for sure http://lists.refractions.net/pipermail/jts-devel/2008-May/002466.html)
-			return BufferOp.bufferOp(gf.createPolygon(ring), 0);
+			Geometry res = BufferOp.bufferOp(gf.createPolygon(ring), 0);
+			
+			if (res.getArea()<=0.0) {
+				logger.warn("Empty geom for: "+name);
+				return null;
+			}
+			
+			return res;
 		} else {
-			System.out.println("No geom for: "+name);
+			logger.warn("No geom for: "+name);
 			return null;
 		}
 	}
 	
-	private void buildStreetsPaths() {
-		for (StreetData sd : streets) {
-			sd.path = extractLineString(sd.osmNodes);
-			sd.osmNodes = null;
-		}
-	}
-	
-	private void buildAddressesPositions() {
-		for (AddressData ad : addresses) {
-			if (ad.position!=null) {
-				
-				Geopoint gp = new Geopoint();
-				gp.longitude = ad.position.getX();
-				gp.latitude = ad.position.getY();
-				
-				ad.wgs84 = gp;
-				
-				continue;
-			}
-						
-			LineString path = extractLineString(ad.osmNodes);
-			
-			if (path!=null) {
-				ad.position = path.getCentroid();
-				
-				Geopoint gp = new Geopoint();
-				gp.longitude = ad.position.getX();
-				gp.latitude = ad.position.getY();
-				
-				ad.wgs84 = gp;
-			}
-			
-			ad.osmNodes = null;
-		}
-	}
-	
-	private void linkCitiesAndStreets() {
-		
-//		int addQuadTree;
-		
-		long last = System.currentTimeMillis();
-	    int i = 0;
-		
-		for (CityData cd : cities) {
-			
-			if (System.currentTimeMillis()-last>1000) {
-	    		last = System.currentTimeMillis();
-	    		
-	    		System.out.println(((i/(double)cities.size())*100)+"% city-street linked");
-	    	}
-			
-			for (StreetData sd : streets) {
-				if (sd.path!=null && cd.boundary!=null && cd.boundary.contains(sd.path)) {
-					cd.streets.add(sd);
-				}
-			}
-			
-			++i;
-		}
-	}
-	
-	private void linkStreetsAndAddresses() {
-		
-		//50 meters
-		double bulgarianRangeBase = 50;
-		double bulgarianRange = bulgarianRangeBase * 360 / (2*Math.PI * 6400000);
-		
-		HashSet<AddressData> usedAddress = new HashSet<>();
-		
-		Quadtree tree = new Quadtree();
-		
-		for (AddressData ad : addresses) {
-			if (ad.position!=null) {
-				
-				Coordinate[] coords = new Coordinate[] {
-					new Coordinate(ad.position.getX()-bulgarianRange, ad.position.getY()-bulgarianRange),
-					new Coordinate(ad.position.getX()+bulgarianRange, ad.position.getY()-bulgarianRange),
-					new Coordinate(ad.position.getX()+bulgarianRange, ad.position.getY()+bulgarianRange),
-					new Coordinate(ad.position.getX()-bulgarianRange, ad.position.getY()+bulgarianRange),
-					
-					//close
-					new Coordinate(ad.position.getX()-bulgarianRange, ad.position.getY()-bulgarianRange)
-				};
-				
-				tree.insert(gf.createPolygon(coords).getEnvelopeInternal(), ad);
-			}
-		}
-		
-		long last = System.currentTimeMillis();
-	    int i = 0;
-		
-		for (StreetData sd : streets) {
-			
-			if (System.currentTimeMillis()-last>1000) {
-	    		last = System.currentTimeMillis();
-	    		
-	    		System.out.println(((i/(double)streets.size())*100)+"% street-address linked");
-	    	}
-			
-			if (sd.path!=null) {
-				
-				List<?> coll = tree.query(BufferOp.bufferOp(sd.path, bulgarianRange).getEnvelopeInternal());
-				
-//				System.out.println(coll.size()+" of "+addresses.size());
-				
-				for (Object object : coll) {
-					AddressData ad = (AddressData) object;
-					
-					if (sd.path.distance(ad.position)<bulgarianRange) {
-						if (ad.streetName!=null && !ad.streetName.toLowerCase().equals(sd.name.toLowerCase())) {
-//							System.out.println(ad.streetName+" != "+sd.name);
-						} else {
-							usedAddress.add(ad);
-							sd.addresses.add(ad);
-//							System.out.println(sd.name);
-						}
-					}
-				}
-				
-			}
-			
-			++i;
-		}
-		
-		for (CityData cd : cities) {
-			
-			if (cd.boundary==null) {
-				continue;
-			}
-			
-			for (Object object : tree.query(cd.boundary.getEnvelopeInternal())) {
-				AddressData ad = (AddressData) object;
-				
-				if (usedAddress.contains(ad)) {
-					continue;
-				}
-				
-				if (ad.position!=null && cd.boundary.contains(ad.position)) {
-					usedAddress.add(ad);
-					cd.addresses.add(ad);
-				}
-			}
-		}
-	}
-	
-	private void removeCityDuplicates() {
-		MultiValueMap dedup = new MultiValueMap();
-		
-		for (CityData cd : cities) {
-			if (cd.name==null) {
-				continue;
-			}
-			
-			dedup.put(cd.name.trim(), cd);
-		}
-		
-		cities.clear();
-		
-		for (Object keyObject : dedup.keySet()) {
-			
-			Collection<?> coll = dedup.getCollection(keyObject);
-			
-			if (coll.size()==1) {
-				cities.add((CityData) coll.iterator().next());
-			} else {
-				CityData res = null;
-				
-				for (Object obj : coll) {
-					CityData cd = (CityData) obj;
-					
-					if (res==null) {
-						res = new CityData();
-						res.name = cd.name;
-						
-						cities.add(res);
-					}
-
-					res.addresses.addAll(cd.addresses);
-					res.streets.addAll(cd.streets);
-					
-					if (res.boundary==null || (cd.boundary!=null && res.boundary.getArea()<cd.boundary.getArea())) {
-						res.boundary = cd.boundary;
-					}
-				}
-			}	
-		}
-	}
-	
-	private void removeStreetDuplicates() {
-		for (CityData cd : cities) {
-			removeStreetDuplicates(cd);
-		}
-	}
-	
-	private void removeStreetDuplicates(CityData cd) {
-		MultiValueMap dedup = new MultiValueMap();
-
-		for (StreetData sd : cd.streets) {
-			if (sd.name==null) {
-				continue;
-			}
-			
-			dedup.put(sd.name.trim(), sd);
-		}
-		
-		cd.streets.clear();
-		
-		for (Object keyObject : dedup.keySet()) {
-			
-			Collection<?> coll = dedup.getCollection(keyObject);
-			
-			if (coll.size()==1) {
-				cd.streets.add((StreetData) coll.iterator().next());
-			} else {
-				StreetData res = null;
-				
-				ArrayList<LineString> ls = new ArrayList<>();
-				
-				for (Object obj : coll) {
-					StreetData sd = (StreetData) obj;
-					
-					if (res==null) {
-						res = new StreetData();
-						res.name = sd.name;
-						
-						cd.streets.add(res);
-					}
-					
-					res.addresses.addAll(sd.addresses);
-					
-					if (sd.path!=null) {
-						ls.add((LineString) sd.path);
-					}
-				}
-				
-				res.path = gf.createMultiLineString(ls.toArray(new LineString[ls.size()]));
-			}	
-		}
-	}
-	
-	private void localizeCities() {
-		for (CityData cd : cities) {
-			if (cd.boundary!=null) {
-				Point centroid = cd.boundary.getCentroid();
-				
-				if (!centroid.isEmpty()) {
-					Geopoint gp = new Geopoint();
-					gp.longitude = centroid.getX();
-					gp.latitude = centroid.getY();
-					
-					cd.wgs84 = gp;
-				}
-			}
-		}
-	}
-	
-	private void localizeStreets() {
-		for (StreetData sd : streets) {
-			if (sd.path!=null) {
-				Point centroid = sd.path.getCentroid();
-				
-				Geopoint gp = new Geopoint();
-				gp.longitude = centroid.getX();
-				gp.latitude = centroid.getY();
-				
-				sd.wgs84 = gp;
-			}
-		}
-	}
-
-	private void extractPostNumber() {
-		
-		long last = System.currentTimeMillis();
-	    int i = 0;
-	    
-		for (CityData cd : cities) {
-			if (System.currentTimeMillis()-last>1000) {
-	    		last = System.currentTimeMillis();
-	    		
-	    		System.out.println(((i/(double)cities.size())*100)+"% post numbers extracted");
-	    	}
-			
-			if (postcodeMap.containsKey(cd.name)) {
-				for (String postCode : postcodeMap.get(cd.name)) {
-					if (correctDistrict(cd.boundary, postCodeToDistrict.get(postCode))) {
-						cd.postCodes.add(postCode);
-					}
-				}				
-			}
-			
-			++i;
-			
-//			System.out.println(cd.name+" -> "+StringUtils.join(cd.postCodes, ", "));
-		}
-	}
-
-	private boolean correctDistrict(Geometry boundary, String districtName) {
-		for (DistrictData dd : districts) {			
-			if (boundary!=null && dd.boundary!=null && dd.boundary.getArea()>0) {
-				if (districtName.equals(dd.name) && dd.boundary.contains(boundary)) {
-					return true;
-				}
-			}
-		}
-				
-		return false;
-	}
-
-	private LineString extractLineString(List<WayNode> wayNodes) {
+	private LineString extractLineString(String name, List<WayNode> wayNodes) {
 		ArrayList<Coordinate> coords = new ArrayList<>();
 
 		for (WayNode wn : wayNodes) {
@@ -685,17 +354,16 @@ public class GeoExtractor {
 			coords.add(new Coordinate(node.getLongitude(), node.getLatitude()));
 		}
 		
-		if (coords.size()>=2) {
-			LineString ls = gf.createLineString(coords.toArray(new Coordinate[coords.size()]));
-			return ls;
+		if (coords.size()<2) {
+			logger.warn("Empty path for: "+name);
+			return null;
 		}
 		
-		return null;
+		LineString ls = gf.createLineString(coords.toArray(new Coordinate[coords.size()]));
+		return ls;
 	}
 	
-	private LineString extractLineString(Way way) {
-		return extractLineString(way.getWayNodes());
-	}
+	
 	
 	public static HashMap<String, String> extractMap(Collection<Tag> tags, boolean printLog) {
 		HashMap<String, String> res = new HashMap<>();
