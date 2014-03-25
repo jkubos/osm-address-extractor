@@ -19,35 +19,35 @@ gradle build
 Sample:
 
 ```
-OsmAddressExtractor extractor = new OsmAddressExtractor();
+CzAddressExtractor czAddressExtractor = new CzAddressExtractor();
 
-//process data
-extractor.extract("/home/jarek/Downloads/mapy/czech_republic-2014-03-05.osm.pbf");
-
-//render sample map - just for check what is in result
-Envelope envelope = new Envelope(12.09, 18.87, 48.55, 51.06);
-extractor.renderResult("/home/jarek/map.png", 16000, 12000, envelope);
+//import of MVCR addresses (defines possible districts-cities-streets-addresses)
+czAddressExtractor.importMvcrData("/home/jarek/geo_db/src/adresy.xml");
 		
-//traverse hierarchical data
-for (CityData city : extractor.getExtractedData()) {
-	
-	//city is having streets
-	for (StreetData street : city.streets) {
-		for (AddressData address : street.addresses) {
-			System.out.println(city.name+"->"+street.name+"->"+address.streetNumber);
-		}
-	}
-	
-	//village without streets
-	for (AddressData address : city.addresses) {
-		System.out.println(city.name+"->"+address.streetNumber);
-	}
-}
-
-//save data as JSON - structure is self-describing
-JsonPersistor.save("/home/jarek/cz_addresses.json", extractor.getExtractedData());
+//import of Czech Post data (enrich cities by postcodes)
+czAddressExtractor.importCzechPostData("/home/jarek/geo_db/src/psc.csv");
+		
+//enrich addresses by geolocation (if possible)
+czAddressExtractor.importOsmData("/home/jarek/geo_db/src/czech_republic-2014-03-05.osm.pbf"); //reduced.pbf
+		
+//save result
+czAddressExtractor.save("/home/jarek/geo_db/cz_addresses_new.json");
 
 ```
+## Log4j keys
+
+```
+log4j.logger.cz.nalezen.osm.extractor.mvcr.MvcrSaxHandler=off,ChytristorMain
+log4j.logger.cz.nalezen.osm.extractor.cp.CzechPostDataLoader=off,ChytristorMain
+log4j.logger.cz.nalezen.chytristor.logic.GeoinfoLoader=off,ChytristorMain
+log4j.logger.cz.nalezen.osm.extractor.osm.GeoExtractor=off,ChytristorMain
+log4j.logger.cz.nalezen.osm.extractor.osm.AddressTreeLinker=off,ChytristorMain
+```
+
+## Data quality
+
+As this tool works fully automatically, quality of output m
+
 
 ## OpenStreetMap
 
@@ -80,7 +80,12 @@ Probably it would make a sense to use geo-db and other gis tools, I just wanted 
 
 ## Useful links
 
-* map features description: http://wiki.openstreetmap.org/wiki/Cs:Map_Features
-* boundary administrative: http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative
+Specifications:
+* Pap features description: http://wiki.openstreetmap.org/wiki/Cs:Map_Features
+* Boundary administrative: http://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative
+* Address structure: http://wiki.openstreetmap.org/wiki/Cs:WikiProject_Czech_Republic/Address_system
+
+Data for import:
 * Czech data: http://osm.kyblsoft.cz/archiv/
 * Czech postcodes: http://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy ("Seznam PSČ částí obcí a obcí bez částí")
+* Addresess db provided by MVCR: http://aplikace.mvcr.cz/adresy/ (data ke stažení)
