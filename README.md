@@ -2,7 +2,7 @@
 
 ## Description
 
-Simple Java extractor of "city -> street -> address" hierarchy from OpenStreetMap. Created as single purpose tool so I guess it won't work for other countries that Czech Republic (because mapping rules may differ). I just publish it for insipiration.
+Simple Java extractor of "district->city -> street -> address" hierarchy from OpenStreetMap. Created as single purpose tool (for http://www.nalezen.cz) so I guess it won't work for other countries that Czech Republic (because mapping rules may differ). There are also country-specific data sources. *I just publish it for insipiration.*
 
 May be there exists tools doing same task faster and better, but I didn't find any suitable fast enough. Also it seems there is no public database of addresses extracted from OSM.
 
@@ -27,26 +27,28 @@ czAddressExtractor.importMvcrData("/home/jarek/geo_db/src/adresy.xml");
 //import of Czech Post data (enrich cities by postcodes)
 czAddressExtractor.importCzechPostData("/home/jarek/geo_db/src/psc.csv");
 		
-//enrich addresses by geolocation (if possible)
-czAddressExtractor.importOsmData("/home/jarek/geo_db/src/czech_republic-2014-03-05.osm.pbf"); //reduced.pbf
+//import OSM data, enrich addresses by geolocation (if possible)
+czAddressExtractor.importOsmData("/home/jarek/geo_db/src/czech_republic-2014-03-05.osm.pbf");
 		
 //save result
 czAddressExtractor.save("/home/jarek/geo_db/cz_addresses_new.json");
 
 ```
-## Log4j keys
+## Log4j configuration
 
 ```
-log4j.logger.cz.nalezen.osm.extractor.mvcr.MvcrSaxHandler=off,ChytristorMain
-log4j.logger.cz.nalezen.osm.extractor.cp.CzechPostDataLoader=off,ChytristorMain
-log4j.logger.cz.nalezen.chytristor.logic.GeoinfoLoader=off,ChytristorMain
-log4j.logger.cz.nalezen.osm.extractor.osm.GeoExtractor=off,ChytristorMain
-log4j.logger.cz.nalezen.osm.extractor.osm.AddressTreeLinker=off,ChytristorMain
+log4j.logger.cz.nalezen.osm.extractor.mvcr.MvcrSaxHandler=info,ChytristorMain
+log4j.logger.cz.nalezen.osm.extractor.cp.CzechPostDataLoader=info,ChytristorMain
+log4j.logger.cz.nalezen.chytristor.logic.GeoinfoLoader=info,ChytristorMain
+log4j.logger.cz.nalezen.osm.extractor.osm.GeoExtractor=info,ChytristorMain
+log4j.logger.cz.nalezen.osm.extractor.osm.AddressTreeLinker=info,ChytristorMain
 ```
 
 ## Data quality
 
-As this tool works fully automatically, quality of output m
+As this tool works fully automatically, quality of output is poor. There is plenty of cases when data from MVCR does not match data from OSM. For example street "Lidická" vs. "Lidická třída".
+
+But for purposes of http://www.nalezen.cz is quality good enoug.
 
 
 ## OpenStreetMap
@@ -87,5 +89,5 @@ Specifications:
 
 Data for import:
 * Czech data: http://osm.kyblsoft.cz/archiv/
-* Czech postcodes: http://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy ("Seznam PSČ částí obcí a obcí bez částí")
+* Czech postcodes: http://www.ceskaposta.cz/ke-stazeni/zakaznicke-vystupy ("Seznam PSČ částí obcí a obcí bez částí") then convert into csv using Excel or OpenOffice Calc.
 * Addresess db provided by MVCR: http://aplikace.mvcr.cz/adresy/ (data ke stažení)
