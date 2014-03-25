@@ -1,4 +1,4 @@
-package cz.nalezen.osm.extractor;
+package cz.nalezen.osm.extractor.osm;
 
 import java.util.Map;
 
@@ -9,11 +9,6 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 public class CustomSink implements Sink {
 	
 	private GeoExtractor geoExtractor;
-	
-	private int count = 0;
-	private int max = 0;
-	
-	private long last = System.currentTimeMillis();
 
 	public CustomSink(GeoExtractor geoExtractor) {
 		this.geoExtractor = geoExtractor;
@@ -21,8 +16,6 @@ public class CustomSink implements Sink {
 
 	@Override
 	public void initialize(Map<String, Object> metaData) {
-		max = count;
-		count = 0;
 	}
 
 	@Override
@@ -38,17 +31,5 @@ public class CustomSink implements Sink {
 		Entity entity = entityContainer.getEntity();
 		
 		geoExtractor.handle(entity);
-		
-		if (System.currentTimeMillis()-last>1000) {
-			last = System.currentTimeMillis();
-			
-			if (max>0) {
-				System.out.println(((count/(double)max)*100)+"% done");
-			} else {
-				System.out.println(count+" entities done");
-			}
-		}
-		
-		++count;	
 	}
 }
