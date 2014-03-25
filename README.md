@@ -2,7 +2,7 @@
 
 ## Description
 
-Simple Java extractor of "district->city -> street -> address" hierarchy from OpenStreetMap. Created as single purpose tool (for http://www.nalezen.cz) so I guess it won't work for other countries that Czech Republic (because mapping rules may differ). There are also country-specific data sources. *I just publish it for insipiration.*
+Simple Java extractor of "district->city -> street -> address" hierarchy from OpenStreetMap. Created as single purpose tool (for http://www.nalezen.cz) so I guess it won't work for other countries that Czech Republic (because mapping rules may differ). There are also country-specific data sources. _I just publish it for insipiration._
 
 May be there exists tools doing same task faster and better, but I didn't find any suitable fast enough. Also it seems there is no public database of addresses extracted from OSM.
 
