@@ -1,9 +1,11 @@
 package cz.nalezen.osm.extractor.data;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class CzechRepublicAddresses {
 	private ArrayList<District> districts = new ArrayList<>();
+	private HashSet<String> missedOsmStreetNames = new HashSet<>();
 
 	public ArrayList<District> getDistricts() {
 		return districts;
@@ -39,5 +41,13 @@ public class CzechRepublicAddresses {
 		}
 		
 		return null;
+	}
+
+	public HashSet<String> getMissedOsmStreetNames() {
+		return missedOsmStreetNames;
+	}
+
+	public void setMissedOsmStreetNames(HashSet<String> missedOsmStreetNames) {
+		this.missedOsmStreetNames = missedOsmStreetNames;
 	}
 }

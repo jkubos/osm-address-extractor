@@ -81,6 +81,7 @@ public class AddressTreeLinker {
 		
 		logger.info("------------- Indexing streets -------------");
 		indexStreets();
+		addStreetName();
 		
 		logger.info("------------- Indexing addresses -------------");
 		indexAddresses();
@@ -96,6 +97,10 @@ public class AddressTreeLinker {
 			
 			linkCities(district, osmDistrict.get());
 		}
+	}
+
+	private void addStreetName() {
+		geoExtractor.getStreets().stream().forEach(s->root.getMissedOsmStreetNames().add(s.name));
 	}
 
 	private void linkCities(District district, DistrictData osmDistrict) {
