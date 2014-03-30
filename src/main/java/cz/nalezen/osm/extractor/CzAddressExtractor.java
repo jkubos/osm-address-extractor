@@ -49,8 +49,9 @@ public class CzAddressExtractor {
 	public static CzechRepublicAddresses load(String path) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			CzechRepublicAddresses res = mapper.readValue(new File(path), CzechRepublicAddresses.class);
 			
+			CzechRepublicAddresses res = mapper.readValue(new File(path), CzechRepublicAddresses.class);
+
 			return res;
 		} catch (Exception e) {
 			e.printStackTrace();
