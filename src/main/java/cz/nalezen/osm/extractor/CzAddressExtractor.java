@@ -2,8 +2,8 @@ package cz.nalezen.osm.extractor;
 
 import java.io.File;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import cz.nalezen.osm.extractor.cp.CzechPostDataLoader;
 import cz.nalezen.osm.extractor.data.CzechRepublicAddresses;
@@ -32,12 +32,11 @@ public class CzAddressExtractor {
 		return root;
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void save(String path) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-			mapper.configure(SerializationConfig.Feature.WRITE_NULL_PROPERTIES, false);
+			mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+			mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 			
 			mapper.writeValue(new File(path), root);
 		} catch (Exception e) {

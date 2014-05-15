@@ -3,7 +3,7 @@ package cz.nalezen.osm.extractor.data;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class City {
 	
