@@ -3,6 +3,8 @@ package cz.nalezen.osm.extractor.data;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class City {
@@ -19,6 +21,15 @@ public class City {
 	private PointWgs84 position;
 	
 	private AuxiliaryData auxiliaryData;
+	private District district;
+	private String uniqueName;
+	
+	public City() {
+	}
+	
+	public City(District district) {
+		this.district = district;
+	}
 	
 	@JsonIgnore
 	public AuxiliaryData assureAuxiliaryData() {
@@ -101,5 +112,31 @@ public class City {
 		addresses.add(address);
 		
 		return address;
+	}
+	
+	@JsonIgnore
+	public String getUniqeName() {
+		if (StringUtils.isBlank(uniqueName)) {
+			throw new RuntimeException("Huh?");
+		}
+		
+		return uniqueName;
+	}
+	
+	@JsonIgnore
+	public void setUniqeName(String uniqeName) {
+		this.uniqueName = uniqeName;
+	}
+
+	public void setDistrict(District district) {
+		this.district = district;
+	}
+	
+	public District getDistrict() {
+		if (district==null) {
+			throw new NullPointerException();
+		}
+		
+		return district;
 	}
 }

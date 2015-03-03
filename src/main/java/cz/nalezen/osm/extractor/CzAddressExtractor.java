@@ -50,6 +50,7 @@ public class CzAddressExtractor {
 			ObjectMapper mapper = new ObjectMapper();
 			
 			CzechRepublicAddresses res = mapper.readValue(new File(path), CzechRepublicAddresses.class);
+			res.updateCityUniqeNames();
 
 			return res;
 		} catch (Exception e) {

@@ -8,6 +8,10 @@ public class District {
 	private String name;
 	private ArrayList<City> cities = new ArrayList<>();
 	
+	public District() {
+		
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -25,8 +29,10 @@ public class District {
 	
 	public void setCities(ArrayList<City> cities) {
 		this.cities = cities;
+		
+		cities.forEach(city->city.setDistrict(this));
 	}
-	
+
 	@JsonIgnore
 	public City assureCity(String cityName) {
 		String cname = cityName.trim().toLowerCase();
@@ -37,7 +43,7 @@ public class District {
 			}
 		}
 
-		City city = new City();
+		City city = new City(this);
 		city.setName(cname);
 		cities.add(city);
 		
