@@ -49,4 +49,8 @@ public class Street {
 		
 		return address;
 	}
+
+	public void printDebug() {
+		System.out.println("street "+name);
+	}
 }
