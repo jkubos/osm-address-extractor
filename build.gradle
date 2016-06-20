@@ -1,4 +1,5 @@
 apply plugin: 'maven'
+apply plugin: 'eclipse-wtp'
 
 dependencies {
     compile 'org.openstreetmap.osmosis:osmosis-pbf:0.44.1'
